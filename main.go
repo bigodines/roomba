@@ -19,33 +19,26 @@ func main() {
 	)
 
 	httpClient := oauth2.NewClient(context.Background(), src)
-	client := githubv4.NewClient(httpClient)
+	ghClient := githubv4.NewClient(httpClient)
 
-	{
-		type Record struct {
-			Node struct {
-				PullRequest struct {
-					Title string
-				} `graphql:"... on PullRequest"`
-			}
-		}
-		var q struct {
-			Search struct {
-				Edges []Record
-			} `graphql:"search(query:$q, type:ISSUE, first:30)"`
-		}
-		variables := map[string]interface{}{
-			"q": githubv4.String("user:gametimesf"),
-		}
-		err := client.Query(context.Background(), &q, variables)
-		if err != nil {
-			fmt.Printf("%+v", err)
-			return
-		}
-		printJSON(q)
+	var q struct {
+		Search struct {
+			Edges []Record
+		} `graphql:"search(query:$query, type:ISSUE, first:30)"`
 	}
+	vars := map[string]interface{}{
+		"query": githubv4.String("is:pr is:open user:gametimesf"),
+	}
+	err := ghClient.Query(context.Background(), &q, vars)
+	if err != nil {
+		fmt.Printf("%+v", err)
+		return
+	}
+	// TODO: slack results
+	printJSON(q)
 }
 
+// TODO: remove
 // printJSON prints v as JSON encoded with indent to stdout. It panics on any error.
 func printJSON(v interface{}) {
 	w := json.NewEncoder(os.Stdout)
