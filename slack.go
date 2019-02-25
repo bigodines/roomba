@@ -19,7 +19,7 @@ type (
 		Repository string
 		Author     string
 		UpdatedAt  time.Time
-		Labels     []string
+		Labels     string
 		Title      string
 		Permalink  string
 	}
@@ -41,17 +41,23 @@ func (s *SlackSvc) Report(results []Record) error {
 	for _, v := range results {
 		pr := v.Node.PullRequest
 		_, exists := s.repos[pr.HeadRepository.Name]
-		if exists {
-			relevant = append(relevant, &Entry{
-				Title:      pr.Title,
-				Author:     pr.Author.Login,
-				Permalink:  pr.Permalink,
-				Repository: pr.HeadRepository.Name,
-				// TODO: finish
-			})
+		if !exists {
+			// we don't care about this repository
+			continue
 		}
-		printJSON(v)
+		// create and add a report entry
+		l := PrintableLabels(pr.Labels)
+		relevant = append(relevant, &Entry{
+			Title:      pr.Title,
+			Author:     pr.Author.Login,
+			Permalink:  pr.Permalink,
+			Repository: pr.HeadRepository.Name,
+			Labels:     l,
+			UpdatedAt:  pr.UpdatedAt,
+		})
 	}
+	// TODO: remove
+	printJSON(relevant)
 	return nil
 }
 

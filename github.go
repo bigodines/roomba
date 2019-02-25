@@ -1,6 +1,6 @@
 package main
 
-import "github.com/shurcooL/githubv4"
+import "time"
 
 type (
 	// Search GraphQL query
@@ -14,20 +14,25 @@ type (
 				Author struct {
 					Login string
 				}
-				Labels struct {
-					Edges []struct {
-						Node struct {
-							Name string
-						}
-					}
-				} `graphql:"labels(first:3)"`
+				Labels         Labels `graphql:"labels(first:3)"`
 				HeadRepository struct {
 					Name string
 				}
-				UpdatedAt githubv4.DateTime
+				UpdatedAt time.Time
 				Permalink string
 				Title     string
 			} `graphql:"... on PullRequest"`
 		}
 	}
+	Labels struct {
+		Edges []struct {
+			Node struct {
+				Name string
+			}
+		}
+	}
 )
+
+func PrintableLabels(labels Labels) string {
+	return ""
+}
