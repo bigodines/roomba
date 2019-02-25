@@ -21,6 +21,9 @@ type (
 						}
 					}
 				} `graphql:"labels(first:3)"`
+				HeadRepository struct {
+					Name string
+				}
 				UpdatedAt githubv4.DateTime
 				Permalink string
 				Title     string

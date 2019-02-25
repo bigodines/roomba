@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ type (
 	Config struct {
 		Environment string `envconfig:"default=development"`
 		// TODO: to support multiple channels, we might want to change this to map[string]string but not for now...
-		Repos     map[string]bool
-		ChannelID string
+		Repos     map[string]bool `envconfig:"-"`
+		ChannelID string          `envconfig:"-"`
 	}
 )
 

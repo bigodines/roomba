@@ -7,12 +7,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bigodines/roomgo/config"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
 
 func main() {
+	// TODO: support flags
 	flag.Parse()
+
+	conf, err := config.Load(getEnv())
+	if err != nil {
+		panic(err)
+	}
 
 	slackToken := os.Getenv("SLACK_TOKEN")
 
@@ -24,7 +31,7 @@ func main() {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	ghClient := githubv4.NewClient(httpClient)
 
-	slackSvc, err := NewSlackSvc(slackToken)
+	slackSvc, err := NewSlackSvc(slackToken, conf)
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +43,7 @@ func main() {
 	vars := map[string]interface{}{
 		"query": githubv4.String("is:pr is:open user:gametimesf"),
 	}
+
 	err = ghClient.Query(context.Background(), &q, vars)
 	if err != nil {
 		fmt.Printf("%+v", err)
@@ -46,10 +54,19 @@ func main() {
 		return
 	}
 
+	// parse and report to slack
 	err = slackSvc.Report(q.Search.Edges)
 	if err != nil {
 		fmt.Printf("Failed to issue PullRequest report: (%s)\n", err)
 	}
+}
+
+func getEnv() string {
+	env := os.Getenv("ENVIRONMENT")
+	if env == "" {
+		env = "development"
+	}
+	return env
 }
 
 // TODO: remove
