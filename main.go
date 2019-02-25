@@ -14,6 +14,9 @@ import (
 func main() {
 	flag.Parse()
 
+	slackToken := os.Getenv("SLACK_TOKEN")
+
+	// Github auth
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
 	)
@@ -21,21 +24,32 @@ func main() {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	ghClient := githubv4.NewClient(httpClient)
 
+	slackSvc, err := NewSlackSvc(slackToken)
+	if err != nil {
+		panic(err)
+	}
+
+	// GraphQL query
 	var q struct {
-		Search struct {
-			Edges []Record
-		} `graphql:"search(query:$query, type:ISSUE, first:30)"`
+		Search Search `graphql:"search(query:$query, type:ISSUE, first:30)"`
 	}
 	vars := map[string]interface{}{
 		"query": githubv4.String("is:pr is:open user:gametimesf"),
 	}
-	err := ghClient.Query(context.Background(), &q, vars)
+	err = ghClient.Query(context.Background(), &q, vars)
 	if err != nil {
 		fmt.Printf("%+v", err)
 		return
 	}
-	// TODO: slack results
-	printJSON(q)
+
+	if len(q.Search.Edges) < 1 {
+		return
+	}
+
+	err = slackSvc.Report(q.Search.Edges)
+	if err != nil {
+		fmt.Printf("Failed to issue PullRequest report: (%s)\n", err)
+	}
 }
 
 // TODO: remove

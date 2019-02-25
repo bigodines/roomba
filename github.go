@@ -3,6 +3,10 @@ package main
 import "github.com/shurcooL/githubv4"
 
 type (
+	// Search GraphQL query
+	Search struct {
+		Edges []Record
+	}
 	// Represents SearchResultItemConnection in Github API v4
 	Record struct {
 		Node struct {
