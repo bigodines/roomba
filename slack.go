@@ -38,6 +38,7 @@ func NewSlackSvc(token string, appConfig config.Config) (SlackSvc, error) {
 // Parse, filter and report github results into slack channel
 func (s *SlackSvc) Report(results []Record) error {
 	relevant := make([]*Entry, 0)
+	// filter
 	for _, v := range results {
 		pr := v.Node.PullRequest
 		_, exists := s.repos[pr.HeadRepository.Name]
@@ -56,8 +57,20 @@ func (s *SlackSvc) Report(results []Record) error {
 			UpdatedAt:  pr.UpdatedAt,
 		})
 	}
+
+	// report
+	for _, v := range relevant {
+		msg := v.ToString()
+		if len(msg) > 0 {
+			fmt.Println(msg)
+			err := s.SendMessage(msg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	// TODO: remove
-	printJSON(relevant)
 	return nil
 }
 
@@ -77,6 +90,7 @@ func (s *SlackSvc) SendMessage(contents string) error {
 		*/
 	}
 
+	return nil
 	channelID, timestamp, err := s.client.PostMessage("CHANNEL_ID", slack.MsgOptionText("Some text", false), slack.MsgOptionAttachments(attachment))
 	if err != nil {
 		return err
@@ -84,4 +98,10 @@ func (s *SlackSvc) SendMessage(contents string) error {
 
 	fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
 	return nil
+}
+
+// Printable format of an Entry
+func (e *Entry) ToString() string {
+	// TODO: improve format
+	return fmt.Sprintf("[%s] %s - \"%s\" (%s)", e.Labels, e.Repository, e.Title, e.Author)
 }
