@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type (
 	// Search GraphQL query
@@ -25,14 +28,29 @@ type (
 		}
 	}
 	Labels struct {
-		Edges []struct {
-			Node struct {
-				Name string
-			}
-		}
+		Edges []LabelEdge
+	}
+
+	LabelEdge struct {
+		Node LabelNode
+	}
+
+	LabelNode struct {
+		Name string
 	}
 )
 
 func PrintableLabels(labels Labels) string {
-	return ""
+	ll := make([]string, 0)
+
+	if len(labels.Edges) > 0 {
+		for _, edge := range labels.Edges {
+			n := edge.Node.Name
+			if len(n) > 0 {
+				ll = append(ll, n)
+			}
+		}
+	}
+
+	return strings.Join(ll[:], ", ")
 }
