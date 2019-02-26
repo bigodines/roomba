@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bigodines/roomgo/config"
@@ -59,17 +60,19 @@ func (s *SlackSvc) Report(results []Record) error {
 	}
 
 	// report
-	for _, v := range relevant {
-		msg := v.ToString()
-		if len(msg) > 0 {
-			fmt.Println(msg)
-			err := s.SendMessage(msg)
-			if err != nil {
-				return err
-			}
+	msg := make([]string, 0)
+	for _, entry := range relevant {
+		line := entry.ToString()
+		if len(line) > 0 {
+			msg = append(msg, line)
 		}
 	}
-
+	// TODO: replace w log lib
+	fmt.Printf("%+v", msg)
+	err := s.SendMessage(strings.Join(msg[:], "\n"))
+	if err != nil {
+		return err
+	}
 	// TODO: remove
 	return nil
 }
