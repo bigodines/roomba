@@ -22,7 +22,6 @@ func main() {
 	}
 
 	slackToken := os.Getenv("SLACK_TOKEN")
-
 	// Github auth
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
@@ -44,6 +43,7 @@ func main() {
 		"query": githubv4.String("is:pr is:open user:gametimesf"),
 	}
 
+	// results gets mapped into `q`
 	err = ghClient.Query(context.Background(), &q, vars)
 	if err != nil {
 		fmt.Printf("%+v", err)
@@ -54,13 +54,15 @@ func main() {
 		return
 	}
 
-	// parse and report to slack
+	// parse results and report to slack
 	err = slackSvc.Report(q.Search.Edges)
 	if err != nil {
 		fmt.Printf("Failed to issue PullRequest report: (%s)\n", err)
+		return
 	}
 }
 
+// helper function to figure environment
 func getEnv() string {
 	env := os.Getenv("ENVIRONMENT")
 	if env == "" {
