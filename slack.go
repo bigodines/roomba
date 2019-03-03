@@ -1,19 +1,23 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/bigodines/roomgo/config"
-	"github.com/nlopes/slack"
+	"github.com/rs/zerolog/log"
 )
 
 type (
 	SlackSvc struct {
-		client    *slack.Client
-		repos     map[string]bool
 		channelID string
+		repos     map[string]bool
+		user      string
+		webhook   string
 	}
 
 	Entry struct {
@@ -26,13 +30,17 @@ type (
 	}
 )
 
+const (
+	roomgoUser = "Roomba"
+)
+
 // Create a new Slack Service that can talk to and from Slack
-func NewSlackSvc(token string, appConfig config.Config) (SlackSvc, error) {
-	c := slack.New(token)
+func NewSlackSvc(webhookURL string, appConfig config.Config) (SlackSvc, error) {
 	return SlackSvc{
-		client:    c,
+		webhook:   webhookURL,
 		repos:     appConfig.Repos,
 		channelID: appConfig.ChannelID,
+		user:      roomgoUser,
 	}, nil
 }
 
@@ -79,27 +87,36 @@ func (s *SlackSvc) Report(results []Record) error {
 
 // Send individual slack message to configured slack channel
 func (s *SlackSvc) SendMessage(contents string) error {
-	attachment := slack.Attachment{
-		Pretext: "some pretext",
-		Text:    "some text",
-		// Uncomment the following part to send a field too
-		/*
-			Fields: []slack.AttachmentField{
-				slack.AttachmentField{
-					Title: "a",
-					Value: "no",
-				},
+	message := map[string]interface{}{
+		"text":       "",
+		"channel":    s.channelID,
+		"username":   s.user,
+		"icon_emoji": ":robot_face:",
+		"attachments": []map[string]interface{}{
+			{
+				"fallback":    contents,
+				"color":       "good",
+				"author_name": "Roomba",
+				"text":        contents,
 			},
-		*/
+		},
 	}
 
-	return nil
-	channelID, timestamp, err := s.client.PostMessage("CHANNEL_ID", slack.MsgOptionText("Some text", false), slack.MsgOptionAttachments(attachment))
+	payload, err := json.Marshal(message)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to serialize Slack payload")
 		return err
 	}
 
-	fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
+	resp, err := http.Post(s.webhook, "application/json", bytes.NewReader(payload))
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to serialize Slack payload: %v", err)
+		return err
+	}
+
+	resp.Body.Close()
+
+	fmt.Printf("Message successfully sent to channel %s", s.channelID)
 	return nil
 }
 

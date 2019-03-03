@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	slackToken := os.Getenv("SLACK_TOKEN")
+	slackToken := os.Getenv("SLACK_WEBHOOK")
 	// Github auth
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},

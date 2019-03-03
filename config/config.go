@@ -16,6 +16,7 @@ type (
 )
 
 var (
+	// NOTE: keep repos sorted alphabetically
 	repos = map[string]bool{
 		"indexer":   true,
 		"mobileapi": true,
@@ -23,7 +24,15 @@ var (
 	}
 	configs = map[string]Config{
 		"development": {
-			Repos: repos,
+			Repos:     repos,
+			ChannelID: "G78DB10F5",
+		},
+		"staging": {
+			Repos:     repos,
+			ChannelID: "G78DB10F5",
+		},
+		"production": {
+			ChannelID: "C17P1LRD1",
 		},
 	}
 )
