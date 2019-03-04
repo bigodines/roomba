@@ -8,7 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"go4.org/sort"
+
 	"github.com/bigodines/roomgo/config"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/rs/zerolog/log"
 )
 
@@ -47,7 +50,7 @@ func NewSlackSvc(webhookURL string, appConfig config.Config) (SlackSvc, error) {
 // Parse, filter and report github results into slack channel
 func (s *SlackSvc) Report(results []Record) error {
 	relevant := make([]*Entry, 0)
-	// filter
+	// filter relevant Pull Requests
 	for _, v := range results {
 		pr := v.Node.PullRequest
 		_, exists := s.repos[pr.HeadRepository.Name]
@@ -67,7 +70,12 @@ func (s *SlackSvc) Report(results []Record) error {
 		})
 	}
 
-	// report
+	// Oldest first
+	sort.Slice(relevant, func(i, j int) bool {
+		return relevant[i].UpdatedAt.Before(relevant[j].UpdatedAt)
+	})
+
+	// Create Report
 	msg := make([]string, 0)
 	for _, entry := range relevant {
 		line := entry.ToString()
@@ -75,13 +83,13 @@ func (s *SlackSvc) Report(results []Record) error {
 			msg = append(msg, line)
 		}
 	}
-	// TODO: replace w log lib
-	fmt.Printf("%+v", msg)
+
+	log.Debug().Msgf("%+v", msg)
 	err := s.SendMessage(strings.Join(msg[:], "\n"))
 	if err != nil {
 		return err
 	}
-	// TODO: remove
+
 	return nil
 }
 
@@ -94,10 +102,8 @@ func (s *SlackSvc) SendMessage(contents string) error {
 		"icon_emoji": ":robot_face:",
 		"attachments": []map[string]interface{}{
 			{
-				"fallback":    contents,
-				"color":       "good",
-				"author_name": "Roomba",
-				"text":        contents,
+				"fallback": contents,
+				"text":     contents,
 			},
 		},
 	}
@@ -122,6 +128,6 @@ func (s *SlackSvc) SendMessage(contents string) error {
 
 // Printable format of an Entry
 func (e *Entry) ToString() string {
-	// TODO: improve format
-	return fmt.Sprintf("[%s] %s - \"%s\" (%s)", e.Labels, e.Repository, e.Title, e.Author)
+	age := humanize.Time(e.UpdatedAt)
+	return fmt.Sprintf("*%s* | %s | %s\n\t [%s] \"<%s|%s>\"", e.Repository, e.Author, age, e.Labels, e.Permalink, e.Title)
 }

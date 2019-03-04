@@ -10,6 +10,7 @@ type (
 	Search struct {
 		Edges []Record
 	}
+
 	// Represents SearchResultItemConnection in Github API v4
 	Record struct {
 		Node struct {
@@ -27,6 +28,7 @@ type (
 			} `graphql:"... on PullRequest"`
 		}
 	}
+
 	Labels struct {
 		Edges []LabelEdge
 	}
@@ -40,6 +42,7 @@ type (
 	}
 )
 
+// PrintableLabels Converts a list of labels into a printable string
 func PrintableLabels(labels Labels) string {
 	ll := make([]string, 0)
 

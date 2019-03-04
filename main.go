@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	slackToken := os.Getenv("SLACK_WEBHOOK")
+	slackWebhook := os.Getenv("SLACK_WEBHOOK")
 	// Github auth
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
@@ -30,7 +30,7 @@ func main() {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	ghClient := githubv4.NewClient(httpClient)
 
-	slackSvc, err := NewSlackSvc(slackToken, conf)
+	slackSvc, err := NewSlackSvc(slackWebhook, conf)
 	if err != nil {
 		panic(err)
 	}
