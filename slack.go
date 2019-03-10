@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"go4.org/sort"
@@ -85,7 +84,7 @@ func (s *SlackSvc) Report(results []Record) error {
 	}
 
 	log.Debug().Msgf("%+v", msg)
-	err := s.SendMessage(strings.Join(msg[:], "\n"))
+	err := s.SendMessage(msg)
 	if err != nil {
 		return err
 	}
@@ -94,18 +93,18 @@ func (s *SlackSvc) Report(results []Record) error {
 }
 
 // Send individual slack message to configured slack channel
-func (s *SlackSvc) SendMessage(contents string) error {
+func (s *SlackSvc) SendMessage(contents []string) error {
+	attachments := make([]map[string]interface{}, 0)
+	for _, v := range contents {
+		attachments = append(attachments, map[string]interface{}{"text": v})
+	}
+
 	message := map[string]interface{}{
-		"text":       "",
-		"channel":    s.channelID,
-		"username":   s.user,
-		"icon_emoji": ":robot_face:",
-		"attachments": []map[string]interface{}{
-			{
-				"fallback": contents,
-				"text":     contents,
-			},
-		},
+		"text":        "",
+		"channel":     s.channelID,
+		"username":    s.user,
+		"icon_emoji":  ":robot_face:",
+		"attachments": attachments,
 	}
 
 	payload, err := json.Marshal(message)
