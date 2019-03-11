@@ -2,20 +2,15 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"flag"
-	"fmt"
 	"os"
 
 	"github.com/bigodines/roomgo/config"
+	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
 
 func main() {
-	// TODO: support flags
-	flag.Parse()
-
 	conf, err := config.Load(getEnv())
 	if err != nil {
 		panic(err)
@@ -31,7 +26,7 @@ func main() {
 
 	slackSvc, err := NewSlackSvc(conf)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Can create slack service")
 	}
 
 	// GraphQL query
@@ -45,7 +40,7 @@ func main() {
 	// results gets mapped into `q`
 	err = ghClient.Query(context.Background(), &q, vars)
 	if err != nil {
-		fmt.Printf("%+v", err)
+		log.Error().Err(err).Msg("Failed to reach github")
 		return
 	}
 
@@ -56,7 +51,7 @@ func main() {
 	// parse results and report to slack
 	err = slackSvc.Report(q.Search.Edges)
 	if err != nil {
-		fmt.Printf("Failed to issue PullRequest report: (%s)\n", err)
+		log.Error().Err(err).Msg("Failed to issue PullRequest report")
 		return
 	}
 }
@@ -68,15 +63,4 @@ func getEnv() string {
 		env = "development"
 	}
 	return env
-}
-
-// TODO: remove
-// printJSON prints v as JSON encoded with indent to stdout. It panics on any error.
-func printJSON(v interface{}) {
-	w := json.NewEncoder(os.Stdout)
-	w.SetIndent("", "   ")
-	err := w.Encode(v)
-	if err != nil {
-		panic(err)
-	}
 }

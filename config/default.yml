@@ -1,0 +1,19 @@
+## Slack channel id (not the #name, but the chanel ID.)
+# the easiest way to get the channel ID is to open slack on a web browser and copy the channel ID from the URL.
+channel_id: "G78DB10F5"
+
+# Slack webhook. Learn how to te them up here:
+# https://get.slack.help/hc/en-us/articles/115005265063-Incoming-WebHooks-for-Slack
+web_hook: "https://hooks.slack.com/<YOUR_WEBHOOK_URL>"
+
+# Github organization (or username) where your repos are hosted
+# (unfortunately this version of Roomgo doesn't support multiple organizations)
+organization: "bigodines"
+
+# List of repositories Roomgo should check for pull requests.
+#   This is a map and not a list so that we can have O(1) lookups.
+#   The value after the name means absolutely nothing.
+repos:
+  bigpool: true
+  roomgo: true
+
