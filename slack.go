@@ -9,7 +9,7 @@ import (
 
 	"go4.org/sort"
 
-	"github.com/bigodines/roomgo/config"
+	"github.com/bigodines/roomba/config"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/rs/zerolog/log"
 )
@@ -33,7 +33,7 @@ type (
 )
 
 const (
-	roomgoUser = "Roomba"
+	roombaUser = "Roomba"
 )
 
 // Create a new Slack Service that can talk to and from Slack
@@ -42,7 +42,7 @@ func NewSlackSvc(appConfig config.Config) (SlackSvc, error) {
 		webhook:   appConfig.Webhook,
 		repos:     appConfig.Repos,
 		channelID: appConfig.ChannelID,
-		user:      roomgoUser,
+		user:      roombaUser,
 	}, nil
 }
 

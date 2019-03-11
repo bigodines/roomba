@@ -7,13 +7,13 @@ channel_id: "G78DB10F5"
 web_hook: "https://hooks.slack.com/<YOUR_WEBHOOK_URL>"
 
 # Github organization (or username) where your repos are hosted
-# (unfortunately this version of Roomgo doesn't support multiple organizations)
+# (unfortunately this version of Roomba doesn't support multiple organizations)
 organization: "bigodines"
 
-# List of repositories Roomgo should check for pull requests.
+# List of repositories Roomba should check for pull requests.
 #   This is a map and not a list so that we can have O(1) lookups.
 #   The value after the name means absolutely nothing.
 repos:
   bigpool: true
-  roomgo: true
+  roomba: true
 

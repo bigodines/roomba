@@ -1,4 +1,4 @@
-## Roomgo
+## Roomba
 
 **a proper github/slack bot**
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/bigodines/roomgo/config"
+	"github.com/bigodines/roomba/config"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"

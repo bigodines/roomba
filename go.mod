@@ -1,4 +1,4 @@
-module github.com/bigodines/roomgo
+module github.com/bigodines/roomba
 
 require (
 	github.com/dustin/go-humanize v1.0.0
