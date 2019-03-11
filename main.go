@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/bigodines/roomba/config"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -14,6 +15,10 @@ func main() {
 	conf, err := config.Load(getEnv())
 	if err != nil {
 		panic(err)
+	}
+
+	if conf.Environment == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	// Github auth
