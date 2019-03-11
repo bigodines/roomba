@@ -37,9 +37,9 @@ const (
 )
 
 // Create a new Slack Service that can talk to and from Slack
-func NewSlackSvc(webhookURL string, appConfig config.Config) (SlackSvc, error) {
+func NewSlackSvc(appConfig config.Config) (SlackSvc, error) {
 	return SlackSvc{
-		webhook:   webhookURL,
+		webhook:   appConfig.Webhook,
 		repos:     appConfig.Repos,
 		channelID: appConfig.ChannelID,
 		user:      roomgoUser,
@@ -94,13 +94,13 @@ func (s *SlackSvc) Report(results []Record) error {
 
 // Send individual slack message to configured slack channel
 func (s *SlackSvc) SendMessage(contents []string) error {
-	attachments := make([]map[string]interface{}, 0)
+	attachments := make([]map[string]interface{}, 1)
+	attachments[0] = map[string]interface{}{"text": fmt.Sprintf("Howdy! Here's a list of *%d* PRs waiting to be reviewed and merged:", len(contents))}
 	for _, v := range contents {
 		attachments = append(attachments, map[string]interface{}{"text": v})
 	}
 
 	message := map[string]interface{}{
-		"text":        "",
 		"channel":     s.channelID,
 		"username":    s.user,
 		"icon_emoji":  ":robot_face:",
@@ -121,7 +121,7 @@ func (s *SlackSvc) SendMessage(contents []string) error {
 
 	resp.Body.Close()
 
-	fmt.Printf("Message successfully sent to channel %s", s.channelID)
+	log.Info().Msgf("Message successfully sent to channel %s", s.channelID)
 	return nil
 }
 
