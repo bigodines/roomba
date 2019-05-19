@@ -23,7 +23,7 @@ Roomba is a simple bot that queries GitHub and post relevant pending PullRequest
 
 * Compile and run:
 
-`GO111MODULE=on GITHUB_TOKEN=<your github token> go build && ./roomba`
+`GITHUB_TOKEN=<your github token> make build && ./roomba`
 
 
 ### Roadmap
