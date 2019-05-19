@@ -25,9 +25,3 @@ Roomba is a simple bot that queries GitHub and post relevant pending PullRequest
 
 `GITHUB_TOKEN=<your github token> make build && ./roomba`
 
-
-### Roadmap
-
-Roomba is a weekend project thus development might be slow but here are a few things I plan to work on:
-* Turn roomba into a slack app so users can interact with it
-* Message users as their PRs get reviewed
