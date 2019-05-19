@@ -15,13 +15,16 @@ import (
 )
 
 type (
+	// SlackSvc is the Slack service layer
 	SlackSvc struct {
 		channelID string
 		repos     map[string]bool
 		user      string
 		webhook   string
+		client    *http.Client
 	}
 
+	// Entry represents a Roomba Slack entity
 	Entry struct {
 		Repository string
 		Author     string
@@ -33,6 +36,7 @@ type (
 )
 
 const (
+	// Nickname used for slack messages
 	roombaUser = "Roomba"
 )
 
@@ -43,6 +47,7 @@ func NewSlackSvc(appConfig config.Config) (SlackSvc, error) {
 		repos:     appConfig.Repos,
 		channelID: appConfig.ChannelID,
 		user:      roombaUser,
+		client:    &http.Client{},
 	}, nil
 }
 
@@ -113,7 +118,7 @@ func (s *SlackSvc) SendMessage(contents []string) error {
 		return err
 	}
 
-	resp, err := http.Post(s.webhook, "application/json", bytes.NewReader(payload))
+	resp, err := s.client.Post(s.webhook, "application/json", bytes.NewReader(payload))
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to serialize Slack payload: %v", err)
 		return err
