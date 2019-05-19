@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/bigodines/roomba/config"
@@ -47,6 +48,9 @@ func TestSendMessage(t *testing.T) {
 
 		assert.Equal(t, "chanID", res["channel"])
 		assert.Equal(t, "Roomba", res["username"])
+		att := res["attachments"].([]interface{})
+		a := att[1].(map[string]interface{})
+		assert.True(t, strings.Contains(a["text"].(string), "boom!"))
 
 	}))
 
@@ -57,5 +61,5 @@ func TestSendMessage(t *testing.T) {
 		client:    &http.Client{},
 	}
 
-	s.SendMessage([]string{"hi"})
+	s.SendMessage([]string{"boom!"})
 }
