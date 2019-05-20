@@ -3,6 +3,7 @@ module github.com/bigodines/roomba
 require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/golangci/golangci-lint v1.16.1-0.20190425135923-692dacb773b7 // indirect
 	github.com/rs/zerolog v1.12.0
 	github.com/shurcooL/githubv4 v0.0.0-20190119021625-d9689b595017
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect

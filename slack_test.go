@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/bigodines/roomba/config"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,6 +25,10 @@ var (
 		Organization: "bigodines",
 	}
 )
+
+func init() {
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+}
 
 func TestConstructor(t *testing.T) {
 	s, _ := NewSlackSvc(fakeConfig)
@@ -61,5 +66,8 @@ func TestSendMessage(t *testing.T) {
 		client:    &http.Client{},
 	}
 
-	s.SendMessage([]string{"boom!"})
+	err := s.SendMessage([]string{"boom!"})
+	if err != nil {
+		t.Error(err.Error())
+	}
 }

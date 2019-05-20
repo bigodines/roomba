@@ -25,3 +25,8 @@ Roomba is a simple bot that queries GitHub and post relevant pending PullRequest
 
 `GITHUB_TOKEN=<your github token> make build && ./roomba`
 
+### Dev
+
+* Install linter
+
+`GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0`
