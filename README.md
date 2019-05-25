@@ -4,7 +4,7 @@
 
 ### About this project
 
-Roomba is a simple bot that queries GitHub and post relevant pending PullRequests to a slack room. Everything is configurable through environment variables and `yml` files. ~You don't even need `Go`. Just download one of the release binaries and start using it.~ (not yet)
+Roomba is a simple bot that queries GitHub and post relevant pending PullRequests to a slack room. Everything is configurable through environment variables and `yml` files.
 
 
 ### Quick start

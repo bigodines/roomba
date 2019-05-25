@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bigodines/roomba/config"
 	"github.com/rs/zerolog"
@@ -66,8 +68,34 @@ func TestSendMessage(t *testing.T) {
 		client:    &http.Client{},
 	}
 
-	err := s.SendMessage([]string{"boom!"})
+	err := s.SendMessage([]string{"boom!"}, []string{})
 	if err != nil {
 		t.Error(err.Error())
 	}
+}
+
+func TestGetMessages(t *testing.T) {
+	future := "2039-01-02"
+	s, _ := NewSlackSvc(config.Config{
+		Countdown: map[string]string{
+			future: "This project shohuld be dead",
+		},
+	})
+
+	d, _ := time.Parse(layoutISO, future)
+	expectedDays := int64(time.Until(d).Hours() / 24)
+	res := s.GetMessages()
+	assert.Equal(t, 1, len(res))
+	assert.True(t, strings.Contains(res[0], fmt.Sprintf("%d", expectedDays)))
+	assert.True(t, strings.Contains(res[0], "This project shohuld be dead"))
+
+	past := "1999-01-05"
+	s, _ = NewSlackSvc(config.Config{
+		Countdown: map[string]string{
+			past: "This shouldn't be displayed",
+		},
+	})
+
+	res = s.GetMessages()
+	assert.Equal(t, 0, len(res))
 }

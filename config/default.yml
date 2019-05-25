@@ -17,3 +17,6 @@ repos:
   bigpool: true
   roomba: true
 
+# [Optional] Countdowns are appended to the report. Once the date has passed, the countdown stops
+countdowns:
+  "2019-12-31": "New Year!"
