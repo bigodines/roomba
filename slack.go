@@ -119,7 +119,7 @@ func (s *SlackSvc) GetMessages() []string {
 		}
 		daysUntil := int64(time.Until(d).Hours() / 24)
 		if daysUntil > 0 {
-			msgs = append(msgs, fmt.Sprintf("%s is *%d* days away!", v, daysUntil))
+			msgs = append(msgs, fmt.Sprintf("Friendly Reminder: \"%s\" is *%d* days away!", v, daysUntil))
 		}
 	}
 
