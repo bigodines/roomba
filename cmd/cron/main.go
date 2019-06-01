@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/bigodines/roomba/config"
+	roomba "github.com/bigodines/roomba/lib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
@@ -29,14 +30,14 @@ func main() {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	ghClient := githubv4.NewClient(httpClient)
 
-	slackSvc, err := NewSlackSvc(conf)
+	slackSvc, err := roomba.NewSlackSvc(conf)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Can create slack service")
 	}
 
 	// GraphQL query
 	var q struct {
-		Search Search `graphql:"search(query:$query, type:ISSUE, first:30)"`
+		Search roomba.Search `graphql:"search(query:$query, type:ISSUE, first:30)"`
 	}
 	vars := map[string]interface{}{
 		"query": githubv4.String("is:pr is:open user:gametimesf"),
