@@ -19,3 +19,9 @@ tidy:
 .PHONY: lint
 lint:
 	golangci-lint run ./...
+
+## TODO: build container for each GOOS
+.PHONY: docker
+docker:
+	docker build -t olcolabs/roomba .
+
