@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/bigodines/roomba/config"
-	roomba "github.com/bigodines/roomba/lib"
+	"github.com/olcolabs/roomba/config"
+	roomba "github.com/olcolabs/roomba/lib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
