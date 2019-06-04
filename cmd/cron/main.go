@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/olcolabs/roomba/config"
@@ -40,7 +41,7 @@ func main() {
 		Search roomba.Search `graphql:"search(query:$query, type:ISSUE, first:30)"`
 	}
 	vars := map[string]interface{}{
-		"query": githubv4.String("is:pr is:open user:gametimesf"),
+		"query": githubv4.String(fmt.Sprintf("is:pr is:open user:%s", conf.Organization)),
 	}
 
 	// results gets mapped into `q`
