@@ -33,3 +33,6 @@ docker:
 push:
 	docker push olcolabs/roomba:latest
 
+.PHONY: run
+run:
+	docker run --env GITHUB_TOKEN=$(GITHUB_TOKEN) --entrypoint=./cron olcolabs/roomba:latest
