@@ -1,3 +1,4 @@
 bin/*
 config/development.yml
 config/production.yml
+.idea/*
