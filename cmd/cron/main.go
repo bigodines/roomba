@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/olcolabs/roomba/config"
-	"github.com/olcolabs/roomba/lib"
+	roomba "github.com/olcolabs/roomba/lib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
