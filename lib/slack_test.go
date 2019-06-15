@@ -1,4 +1,4 @@
-package main
+package roomba
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bigodines/roomba/config"
+	"github.com/olcolabs/roomba/config"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )

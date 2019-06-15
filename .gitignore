@@ -1,3 +1,3 @@
-roomba
+bin/*
 config/development.yml
 config/production.yml
