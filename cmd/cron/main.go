@@ -36,7 +36,7 @@ func main() {
 
 // setupProjects will add the required labels to all repos if they dont yet exist
 func setupProjects(ghClient *githubv4.Client, conf config.Config) {
-	//---------------------- GET LABELS FROM REPO ----------------------
+	//---------------------- GET LABELS FROM REPO - ---------------------
 	repoName := "personal_capital_foreign_currency"
 	// GraphQL query
 	var q struct {
