@@ -12,16 +12,19 @@ import (
 
 type (
 	Config struct {
-		Environment string `envconfig:"default=development"`
-		Webhook     string `json:"web_hook" envconfig:"-"`
+		Environment string            `envconfig:"default=development"`
+		Webhook     string            `json:"web_hook" envconfig:"-"`
+		Repos       map[string]bool   `json:"repos" envconfig:"-"`
+		Countdown   map[string]string `json:"countdown" envconfig:"-"`
 		// TODO: to support multiple channels, we might want to change this to map[string]string but not for now...
-		Repos        map[string]bool   `json:"repos" envconfig:"-"`
-		Countdown    map[string]string `json:"countdown" envconfig:"-"`
-		ChannelID    string            `json:"channel_id" envconfig:"-"`
-		Organization string            `json:"organization" envconfig:"-"`
+		ChannelID    string `json:"channel_id" envconfig:"-"`
+		Organization string `json:"organization" envconfig:"-"`
+		// ReportCallback is an optional endpoint where Report results get posted
+		ReportCallback string `json:"report_callback" envconfig:"-"`
 	}
 )
 
+// Load configuration struct into memory
 func Load(env string) (Config, error) {
 	config, err := configFromFile(env)
 	if err != nil {

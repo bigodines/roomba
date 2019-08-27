@@ -3,13 +3,13 @@ package roomba
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"go4.org/sort"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/olcolabs/roomba/config"
 	"github.com/rs/zerolog/log"
 )
@@ -17,22 +17,13 @@ import (
 type (
 	// SlackSvc is the Slack service layer
 	SlackSvc struct {
-		channelID string
-		repos     map[string]bool
-		user      string
-		webhook   string
-		client    *http.Client
-		countdown map[string]string
-	}
-
-	// Entry represents a Roomba Slack entity
-	Entry struct {
-		Repository string
-		Author     string
-		UpdatedAt  time.Time
-		Labels     string
-		Title      string
-		Permalink  string
+		channelID      string
+		repos          map[string]bool
+		user           string
+		webhook        string
+		client         *http.Client
+		countdown      map[string]string
+		reportCallback string
 	}
 )
 
@@ -46,12 +37,13 @@ const (
 // Create a new Slack Service that can talk to and from Slack
 func NewSlackSvc(appConfig config.Config) (SlackSvc, error) {
 	return SlackSvc{
-		webhook:   appConfig.Webhook,
-		repos:     appConfig.Repos,
-		countdown: appConfig.Countdown,
-		channelID: appConfig.ChannelID,
-		user:      roombaUser,
-		client:    &http.Client{},
+		webhook:        appConfig.Webhook,
+		repos:          appConfig.Repos,
+		countdown:      appConfig.Countdown,
+		channelID:      appConfig.ChannelID,
+		reportCallback: appConfig.ReportCallback,
+		user:           roombaUser,
+		client:         &http.Client{},
 	}, nil
 }
 
@@ -61,7 +53,7 @@ func (s *SlackSvc) Report(results []Record) error {
 	// TODO: wg.add()
 	reminders := s.GetMessages()
 
-	relevant := make([]*Entry, 0)
+	relevant := make([]PullRequest, 0)
 	// filter relevant Pull Requests
 	for _, v := range results {
 		pr := v.Node.PullRequest
@@ -72,7 +64,7 @@ func (s *SlackSvc) Report(results []Record) error {
 		}
 		// create and add a report entry
 		l := PrintableLabels(pr.Labels)
-		relevant = append(relevant, &Entry{
+		relevant = append(relevant, PullRequest{
 			Title:      pr.Title,
 			Author:     pr.Author.Login,
 			Permalink:  pr.Permalink,
@@ -87,56 +79,39 @@ func (s *SlackSvc) Report(results []Record) error {
 		return relevant[i].UpdatedAt.Before(relevant[j].UpdatedAt)
 	})
 
-	// Create Report
-	prs := make([]string, 0)
-	for _, entry := range relevant {
-		line := entry.ToString()
-		if len(line) > 0 {
-			prs = append(prs, line)
-		}
+	report := ReportPayload{
+		ChannelID: s.channelID,
+		Datetime:  time.Now(),
+		PRs:       relevant,
+		Reminders: reminders,
 	}
 
-	log.Debug().Msgf("%+v", prs)
-	err := s.SendMessage(reminders, prs)
+	log.Debug().Msgf("%+v", report)
+	err := s.SendMessage(report)
 	if err != nil {
 		return err
 	}
 
+	if len(s.reportCallback) > 0 {
+		err = s.ReportCallback(report)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-// GetMessages return active countdowns in a report friendly format
-func (s *SlackSvc) GetMessages() []string {
-	msgs := make([]string, 0)
-	if len(s.countdown) < 1 {
-		return msgs
-	}
-	// append countdowns in the future
-	for k, v := range s.countdown {
-		d, err := time.Parse(layoutISO, k)
-		if err != nil {
-			continue
-		}
-		daysUntil := int64(time.Until(d).Hours() / 24)
-		if daysUntil > 0 {
-			msgs = append(msgs, fmt.Sprintf("Friendly Reminder: \"%s\" is *%d* days away!", v, daysUntil))
-		}
-	}
-
-	return msgs
-}
-
 // Send individual slack message to configured slack channel
-func (s *SlackSvc) SendMessage(reminders, prs []string) error {
+func (s *SlackSvc) SendMessage(report ReportPayload) error {
 	attachments := make([]map[string]interface{}, 1)
-	attachments[0] = map[string]interface{}{"text": fmt.Sprintf("Howdy! Here's a list of *%d* PRs waiting to be reviewed and merged:", len(prs))}
-	for _, v := range prs {
-		attachments = append(attachments, map[string]interface{}{"text": v})
+	attachments[0] = map[string]interface{}{"text": fmt.Sprintf("Howdy! Here's a list of *%d* PRs waiting to be reviewed and merged:", len(report.PRs))}
+	for _, v := range report.PRs {
+		attachments = append(attachments, map[string]interface{}{"text": v.ToString()})
 	}
 
-	if len(reminders) > 0 {
-		for _, v := range reminders {
-			attachments = append(attachments, map[string]interface{}{"text": v})
+	if len(report.Reminders) > 0 {
+		for _, v := range report.Reminders {
+			attachments = append(attachments, map[string]interface{}{"text": v.Text})
 		}
 	}
 
@@ -159,14 +134,50 @@ func (s *SlackSvc) SendMessage(reminders, prs []string) error {
 		return err
 	}
 
-	resp.Body.Close()
+	defer resp.Body.Close()
 
 	log.Info().Msgf("Message successfully sent to channel %s", s.channelID)
 	return nil
 }
 
-// Printable format of an Entry
-func (e *Entry) ToString() string {
-	age := humanize.Time(e.UpdatedAt)
-	return fmt.Sprintf("*%s* | %s | %s\n\t [%s] \"<%s|%s>\"", e.Repository, e.Author, age, e.Labels, e.Permalink, e.Title)
+func (s *SlackSvc) ReportCallback(report ReportPayload) error {
+	payload, err := json.Marshal(report)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to serialize callback payload")
+		return err
+	}
+
+	resp, err := s.client.Post(s.reportCallback, "application/json", bytes.NewReader(payload))
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to post payload to callback endpoint")
+		return errors.New("Failed to post")
+	}
+	defer resp.Body.Close()
+
+	log.Info().Str("callback_url", s.reportCallback).Msgf("Report callback sent")
+	return nil
+}
+
+// GetMessages return active countdowns in a report friendly format
+func (s *SlackSvc) GetMessages() []Reminder {
+	msgs := make([]Reminder, 0)
+	if len(s.countdown) < 1 {
+		return msgs
+	}
+	// append countdowns in the future
+	for k, v := range s.countdown {
+		d, err := time.Parse(layoutISO, k)
+		if err != nil {
+			continue
+		}
+		daysUntil := int64(time.Until(d).Hours() / 24)
+		if daysUntil > 0 {
+			msgs = append(msgs, Reminder{
+				Date: d,
+				Text: fmt.Sprintf("Friendly Reminder: \"%s\" is *%d* days away!", v, daysUntil),
+			})
+		}
+	}
+
+	return msgs
 }

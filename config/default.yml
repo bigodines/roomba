@@ -20,3 +20,7 @@ repos:
 # [Optional] Countdowns are appended to the report. Once the date has passed, the countdown stops
 countdowns:
   "2019-12-31": "New Year!"
+
+# [Optional] Report Callback is a URL Roomba will POST it's results. Not required
+report_callback:
+  "http://localhost:3010/stats"

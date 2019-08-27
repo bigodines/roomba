@@ -68,7 +68,64 @@ func TestSendMessage(t *testing.T) {
 		client:    &http.Client{},
 	}
 
-	err := s.SendMessage([]string{"boom!"}, []string{})
+	fakeReport := ReportPayload{
+		ChannelID: "123",
+		Datetime:  time.Now(),
+		PRs: []PullRequest{
+			PullRequest{
+				Title:     "boom!",
+				Author:    "bigo",
+				Permalink: "http://www.example.com",
+			},
+		},
+	}
+
+	err := s.SendMessage(fakeReport)
+	if err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestReportCallback(t *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if r.Method != "POST" {
+			t.Errorf("Expected POST")
+		}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		var req ReportPayload
+		if err = json.Unmarshal(body, &req); err != nil {
+			t.Error(err)
+		}
+
+		assert.Equal(t, "000ABC", req.ChannelID)
+
+	}))
+
+	s := SlackSvc{
+		channelID:      "000ABC",
+		user:           "Roomba",
+		reportCallback: testServer.URL,
+		client:         &http.Client{},
+	}
+
+	fakeReport := ReportPayload{
+		ChannelID: "000ABC",
+		Datetime:  time.Now(),
+		PRs: []PullRequest{
+			PullRequest{
+				Title:     "boom!",
+				Author:    "bigo",
+				Permalink: "http://www.example.com",
+			},
+		},
+	}
+
+	err := s.ReportCallback(fakeReport)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -86,8 +143,8 @@ func TestGetMessages(t *testing.T) {
 	expectedDays := int64(time.Until(d).Hours() / 24)
 	res := s.GetMessages()
 	assert.Equal(t, 1, len(res))
-	assert.True(t, strings.Contains(res[0], fmt.Sprintf("%d", expectedDays)))
-	assert.True(t, strings.Contains(res[0], "This project shohuld be dead"))
+	assert.True(t, strings.Contains(res[0].Text, fmt.Sprintf("%d", expectedDays)))
+	assert.True(t, strings.Contains(res[0].Text, "This project shohuld be dead"))
 
 	past := "1999-01-05"
 	s, _ = NewSlackSvc(config.Config{
